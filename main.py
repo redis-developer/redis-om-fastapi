@@ -6,22 +6,22 @@ To test, first, start the server:
 
     $ uvicorn --reload main:test
 
-Then, in another shell, create a user:
+Then, in another shell, create a customer:
 
-    $ curl -X POST -H 'Content-Length: 0' "http://localhost:8000/user"
-    {"pk":"01FM11YW3ZXH6XZHEWTAJHFNC7","first_name":"Andrew","last_name":"Brookins","email":"andrew.brookins@example.com","join_date":"2021-11-08","age":38,"bio":"Python developer, works at
-    Redis, Inc."}
+    $ curl -X POST -H 'Content-Length: 0' "http://localhost:8000/customer"
+    $ curl -X POST  "http://localhost:8000/customer" -H 'Content-Type: application/json' -d '{"first_name":"Andrew","last_name":"Brookins","email":"a@example.com","age":"38","join_date":"2020
+-01-02"}'
+    {"pk":"01FM2G8EP38AVMH7PMTAJ123TA","first_name":"Andrew","last_name":"Brookins","email":"a@example.com","join_date":"2020-01-02","age":38,"bio":""}
 
-Get a copy of the value for "pk" and make another request to get that user:
+Get a copy of the value for "pk" and make another request to get that customer:
 
-    $ curl "http://localhost:8000/user/01FM11YW3ZXH6XZHEWTAJHFNC7"
-    {"pk":"01FM11YW3ZXH6XZHEWTAJHFNC7","first_name":"Andrew","last_name":"Brookins","email":"andrew.brookins@example.com","join_date":"2021-11-08","age":38,"bio":"Python developer, works at
-Redis, Inc."}
+    $ curl "http://localhost:8000/customer/01FM2G8EP38AVMH7PMTAJ123TA"
+    {"pk":"01FM2G8EP38AVMH7PMTAJ123TA","first_name":"Andrew","last_name":"Brookins","email":"a@example.com","join_date":"2020-01-02","age":38,"bio":""}
 
-You can also get a list of all user PKs:
+You can also get a list of all customer PKs:
 
-    $ curl "http://localhost:8000/users"
-    {"users":["01FM11YW3ZXH6XZHEWTAJHFNC7"]}
+    $ curl "http://localhost:8000/customers"
+    {"customers":["01FM2G8EP38AVMH7PMTAJ123TA"]}
 """
 
 import datetime
@@ -29,7 +29,7 @@ from typing import Optional
 
 import aioredis
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -39,7 +39,13 @@ from fastapi_cache.decorator import cache
 
 from pydantic import EmailStr
 
-from redis_om.model import HashModel
+from redis_om.model import HashModel, NotFoundError
+from redis_om.connections import get_redis_connection
+
+# This Redis instance is tuned for durability.
+REDIS_DATA_URL = "redis://localhost:6380"
+# This Redis instance is tuned for cache performance.
+REDIS_CACHE_URL = "redis://localhost:6381"
 
 
 class Customer(HashModel):
@@ -54,38 +60,34 @@ class Customer(HashModel):
 app = FastAPI()
 
 
-@app.post("/user")
-async def save_user():
-    # First, we create a new `Customer` object:
-    user = Customer(
-        first_name="Andrew",
-        last_name="Brookins",
-        email="andrew.brookins@example.com",
-        join_date=datetime.date.today(),
-        age=38,
-        bio="Python developer, works at Redis, Inc."
-    )
-
+@app.post("/customer")
+async def save_customer(customer: Customer):
     # We can save the model to Redis by calling `save()`:
-    user.save()
-
-    return user.dict()
+    return customer.save()
 
 
-@app.get("/users")
-async def list_users(request: Request, response: Response):
+@app.get("/customers")
+async def list_customers(request: Request, response: Response):
     # To retrieve this customer with its primary key, we use `Customer.get()`:
-    return {"users": Customer.all_pks()}
+    return {"customers": Customer.all_pks()}
 
 
-@app.get("/user/{pk}")
+@app.get("/customer/{pk}")
 @cache(expire=10)
-async def get_user(pk: str, request: Request, response: Response):
+async def get_customer(pk: str, request: Request, response: Response):
     # To retrieve this customer with its primary key, we use `Customer.get()`:
-    return Customer.get(pk).dict()
+    try:
+        return Customer.get(pk)
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Customer not found")
 
 
 @app.on_event("startup")
 async def startup():
-    r =  aioredis.from_url("redis://localhost:6381", encoding="utf8", decode_responses=True)
+    r =  aioredis.from_url(REDIS_CACHE_URL, encoding="utf8", decode_responses=True)
     FastAPICache.init(RedisBackend(r), prefix="fastapi-cache")
+
+    # You can set the Redis OM URL using the REDIS_OM_URL environment
+    # variable, or by manually creating the connection using your model's
+    # Meta object.
+    Customer.Meta.database = get_redis_connection(url=REDIS_DATA_URL, decode_responses=True)
