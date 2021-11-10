@@ -260,7 +260,7 @@ hiredis = ["hiredis (>=0.1.3)"]
 
 [[package]]
 name = "redis-om"
-version = "0.0.10"
+version = "0.0.12"
 description = "A high-level library containing useful Redis abstractions and tools, like an ORM and leaderboard."
 category = "main"
 optional = false
@@ -365,7 +365,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "1460a5ee002442e4df08e677c69c2575ca041ce8284eb909ef2faa8c9a249b68"
+content-hash = "f2021148d550c86070da94a3ffc0533099820ec9f635b1c94a90a28b075bffd7"
 
 [metadata.files]
 aioredis = [
@@ -491,8 +491,8 @@ redis = [
     {file = "redis-3.5.3.tar.gz", hash = "sha256:0e7e0cfca8660dea8b7d5cd8c4f6c5e29e11f31158c0b0ae91a397f00e5a05a2"},
 ]
 redis-om = [
-    {file = "redis-om-0.0.10.tar.gz", hash = "sha256:4552878089a69ac604f7cf2de3846a68d98234cfca653aadac382996e2870b77"},
-    {file = "redis_om-0.0.10-py3-none-any.whl", hash = "sha256:94cd7fb610e3a79a5e6c71a58afa355eeb5df0565822c0e1e3c50e2e491b4fc1"},
+    {file = "redis-om-0.0.12.tar.gz", hash = "sha256:5349c00a45e5b040d7b030dbfb06306f6f08a99dc499b0a986ddbfe11d98347b"},
+    {file = "redis_om-0.0.12-py3-none-any.whl", hash = "sha256:085f3082122541a4c4ff1d5f8bf2151b00a21fcb31c9387c2aa87698358ede35"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
