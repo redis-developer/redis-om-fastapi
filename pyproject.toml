@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "redis-om-fastapi"
-version = "0.1.0"
+version = "0.1.1"
 description = "An example integration between Redis OM and FastAPI"
 authors = ["Andrew Brookins <andrew.brookins@redislabs.com>"]
 license = "BSD-3-Clause"
@@ -11,7 +11,7 @@ fastapi = "^0.70.0"
 uvicorn = "^0.15.0"
 pydantic = {extras = ["email"], version = "^1.8.2"}
 fastapi-cache2 = {extras = ["redis"], version = "^0.1.7"}
-redis-om = "^0.0.12"
+redis-om = "^0.0.17"
 
 [tool.poetry.dev-dependencies]
 
